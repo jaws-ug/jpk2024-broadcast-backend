@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { Jpk2024BroadcastBackendStack } from '../lib/jpk2024-broadcast-backend-stack';
+import { Jpk2024BroadcastBackendTranslateFunctionStack } from '../lib/jpk2024-broadcast-backend-translate-function-stack';
 
 const app = new cdk.App();
-new Jpk2024BroadcastBackendStack(app, 'Jpk2024BroadcastBackendStack', {
+new Jpk2024BroadcastBackendTranslateFunctionStack(app, 'Jpk2024BroadcastBackendTranslateFunctionStack', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
