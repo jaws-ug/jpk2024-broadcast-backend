@@ -4,6 +4,10 @@ import { APIGatewayProxyEvent } from 'aws-lambda'
 const translate = new Translate()
 
 export const handler = async (event: APIGatewayProxyEvent) => {
+
+  if (!event.body){
+    return { statusCode: 400, body: 'invalid request, you are missing the parameter body' };
+  }
   try {
     const requestBody = JSON.parse(event.body || '{"text": "", "translateFrom": "", "translateTo": ""}') as {
       text: string
