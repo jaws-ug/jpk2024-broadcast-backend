@@ -10,14 +10,12 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     return { statusCode: 400, body: 'invalid request, you are missing the parameter body' };
   }
   try {
-    const requestBody = JSON.parse(event.body || '{"text": "", "translateFrom": "", "translateTo": ""}') as {
+    const requestBody = JSON.parse(event.body || '{"text": "", "translateFrom": ""}') as {
       text: string
       translateFrom: string
-      translateTo: string
     }
     const Text = requestBody.text
     const SourceLanguageCode = requestBody.translateFrom
-    //const TargetLanguageCode = requestBody.translateTo
     /**
      * Supported languages and language codes - Amazon Translate
      * https://docs.aws.amazon.com/translate/latest/dg/what-is-languages.html
@@ -49,25 +47,30 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       'ar' //Arabic
     ]
     /// delete Source Language code from array
-    delete TargetLanguageCodes[TargetLanguageCodes.findIndex(item => item === SourceLanguageCode)]
+    //delete TargetLanguageCodes[TargetLanguageCodes.findIndex(item => item === SourceLanguageCode)]
 
     let responceBody:any = {
       "originalText": requestBody.text,
       "SourceLanguageCode": requestBody.translateFrom,
     };
-    for (const TargetLanguageCode of TargetLanguageCodes){
-      const translateParams = {
+    for (const item of TargetLanguageCodes){
+      let TargetLanguageCode = item
+      let translateParams = {
         Text,
         SourceLanguageCode,
         TargetLanguageCode,
       }
-      console.log("Text:" + translateParams.Text)
-      console.log("SourceLanguageCode:" + translateParams.SourceLanguageCode)
-      console.log("TargetLanguageCode:" + translateParams.TargetLanguageCode)
       // translatedText
       const translatedText = await translate.translateText(translateParams).promise()
+      /**if (SourceLanguageCode !== TargetLanguageCode){
+        const translatedText = await translate.translateText(translateParams)
+      }else{
+        console.log("Skip Translation")
+      }
+      */
       // Add Translate results to Array
-      responceBody.TargetLanguageCode = translatedText
+      console.log(JSON.stringify({ translatedText }))
+      responceBody[TargetLanguageCode] = translatedText
       console.log("translatedText:" + responceBody.TargetLanguageCode)
     }
     return {

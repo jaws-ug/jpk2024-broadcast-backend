@@ -58,11 +58,8 @@ export class Jpk2024BroadcastBackendTranslateFunctionStack extends Stack {
           translateFrom: {
             type: JsonSchemaType.STRING,
           },
-          translateTo: {
-            type: JsonSchemaType.STRING,
-          },
         },
-        required: ['text', 'translateFrom', 'translateTo'],
+        required: ['text', 'translateFrom'],
       },
     })
 
