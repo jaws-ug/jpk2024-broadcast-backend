@@ -12,6 +12,7 @@ export class Jpk2024BroadcastBackendIvsViewersCountStack extends Stack {
 
     // ①視聴者数保存用の DynamoDB テーブルを作成
     const ivsViewersCountTable = new Table(this, "ivsViewersCountTable", {
+      tableName: "ivs-viewers-count-table",
       billingMode: BillingMode.PAY_PER_REQUEST,
       partitionKey: { name: 'channel', type: AttributeType.STRING },
       sortKey: { name: 'time', type: AttributeType.NUMBER },
@@ -20,6 +21,7 @@ export class Jpk2024BroadcastBackendIvsViewersCountStack extends Stack {
 
     // ②Lambda 関数を作成
     const ivsViewersCountFunction = new NodejsFunction(this, "ivsViewersCountFunction", {
+      functionName: "ivs-viewers-count-function",
       entry: "src/ivs-viewers-count-function.handler.ts",
       environment: {
           TABLE_NAME: ivsViewersCountTable.tableName
@@ -43,6 +45,7 @@ export class Jpk2024BroadcastBackendIvsViewersCountStack extends Stack {
 
     // ⑤Lambda 関数の定期呼び出し用の EventBridge ルールを定義
     new Rule(this, "ivsViewersCountRule", {
+      ruleName: "ivs-viewers-count-rule",
       schedule: Schedule.rate(Duration.minutes(1)),
       targets: [
         new LambdaFunction(ivsViewersCountFunction)
