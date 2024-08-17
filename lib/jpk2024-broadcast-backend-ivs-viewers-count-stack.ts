@@ -46,7 +46,8 @@ export class Jpk2024BroadcastBackendIvsViewersCountStack extends Stack {
       schedule: Schedule.rate(Duration.minutes(1)),
       targets: [
         new LambdaFunction(ivsViewersCountFunction)
-      ]
+      ],
+      enabled: false
     });
   }
 }
