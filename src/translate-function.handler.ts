@@ -1,8 +1,7 @@
-import { Translate } from 'aws-sdk'
+import { TranslateClient, TranslateTextCommand } from '@aws-sdk/client-translate'
 import { APIGatewayProxyEvent } from 'aws-lambda'
-import { Logging } from 'aws-cdk-lib/custom-resources';
 
-const translate = new Translate()
+const client = new TranslateClient()
 
 export const handler = async (event: APIGatewayProxyEvent) => {
 
@@ -44,16 +43,9 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       'ko', //Korean
       'it', //Italian
       'am', //Amharic
-      'ar' //Arabic
+      'ar', //Arabic
+      'th'  //Thai
     ]
-    /// delete Source Language code from array
-    //delete TargetLanguageCodes[TargetLanguageCodes.findIndex(item => item === SourceLanguageCode)]
-
-    let responceBody:any = {
-      "originalText": requestBody.text,
-      "SourceLanguageCode": requestBody.translateFrom,
-    };
-    //let translatedResponces:any = {}
     let promises = []
     for (const item of TargetLanguageCodes){
       let TargetLanguageCode = item
@@ -63,23 +55,10 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         TargetLanguageCode: TargetLanguageCode,
       }
       promises.push(translatetext(translateParams))
-      // translatedText
-      //translatedResponces[TargetLanguageCode]=translate.translateText(translateParams).promise
-      //promises.push(translate.translateText(translateParams).promise)
-      /**if (SourceLanguageCode !== TargetLanguageCode){
-        const translatedText = await translate.translateText(translateParams)
-      }else{
-        console.log("Skip Translation")
-      }
-      */
-      // Add Translate results to Array
-      //responceBody[TargetLanguageCode] = translatedResponce.TranslatedText
-      //console.log("translatedText:" + responceBody.TargetLanguageCode)
     }
     const results = await Promise.all(promises).then(function(value){
       console.log(value)
     });
-    //const results = await Promise.all(translatedResponces)
     return {
       statusCode: 200,
       headers: {
@@ -107,9 +86,17 @@ interface ResponseBody {
   TranslatedText: string;
 }
 const translatetext = async (translateParams: TranslateParams): Promise<ResponseBody> => {
+  console.log('Translate Started: `${translateParams.SourceLanguageCode} -> ${translateParams.TargetLanguageCode}`');
   try {
-    const request = translate.translateText(translateParams);
-    const data = await request.promise();
+    const request = new TranslateTextCommand(translateParams)
+    const data = await client.send(request);
+    if (data.TranslatedText === undefined) {
+      data.TranslatedText = 'Translate error';
+    }
+    console.log(translateParams.TargetLanguageCode)
+    console.log(data.TranslatedText)
+    console.log(typeof(data.TranslatedText))  
+    console.log(`Translate ended: ${translateParams.SourceLanguageCode} -> ${translateParams.TargetLanguageCode}`)
     return {
       TargetLanguageCode: translateParams.TargetLanguageCode,
       TranslatedText: data.TranslatedText,
@@ -121,28 +108,3 @@ const translatetext = async (translateParams: TranslateParams): Promise<Response
     };
   }
 };
-/**
-const translatetext = async (translateParams:any): Promise<responceBody> => {
-  try {
-    let request = translate.translateText(translateParams)
-    let responce = await request.promise();
-    return {
-      TargetLanguageCode: translateParams.Target,
-      TranslatedText: responce.data.TranslatedText
-  }
-  let request = translate.translateText(translateParams)
-  request.send(function(err, data){
-    if (err){
-      return {
-        TargetLanguageCode: translateParams.TargetLanguageCode,
-        TranslatedText: 'error'
-      }
-    }else{
-      return {
-        TargetLanguageCode: translateParams.TargetLanguageCode,
-        TranslatedText: data.TranslatedText
-      }
-    }
-  }
-}
-*/
