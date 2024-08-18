@@ -62,9 +62,10 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         SourceLanguageCode: SourceLanguageCode,
         TargetLanguageCode: TargetLanguageCode,
       }
+      promises.push(translatetext(translateParams))
       // translatedText
       //translatedResponces[TargetLanguageCode]=translate.translateText(translateParams).promise
-      promises.push(translate.translateText(translateParams).promise)
+      //promises.push(translate.translateText(translateParams).promise)
       /**if (SourceLanguageCode !== TargetLanguageCode){
         const translatedText = await translate.translateText(translateParams)
       }else{
@@ -75,7 +76,9 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       //responceBody[TargetLanguageCode] = translatedResponce.TranslatedText
       //console.log("translatedText:" + responceBody.TargetLanguageCode)
     }
-    const results = await Promise.all(promises)
+    const results = await Promise.all(promises).then(function(value){
+      console.log(value)
+    });
     //const results = await Promise.all(translatedResponces)
     return {
       statusCode: 200,
@@ -93,3 +96,53 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     }
   }
 }
+interface TranslateParams {
+  TargetLanguageCode: string;
+  SourceLanguageCode: string;
+  Text: string;
+}
+
+interface ResponseBody {
+  TargetLanguageCode: string;
+  TranslatedText: string;
+}
+const translatetext = async (translateParams: TranslateParams): Promise<ResponseBody> => {
+  try {
+    const request = translate.translateText(translateParams);
+    const data = await request.promise();
+    return {
+      TargetLanguageCode: translateParams.TargetLanguageCode,
+      TranslatedText: data.TranslatedText,
+    };
+  } catch (err) {
+    return {
+      TargetLanguageCode: translateParams.TargetLanguageCode,
+      TranslatedText: 'error',
+    };
+  }
+};
+/**
+const translatetext = async (translateParams:any): Promise<responceBody> => {
+  try {
+    let request = translate.translateText(translateParams)
+    let responce = await request.promise();
+    return {
+      TargetLanguageCode: translateParams.Target,
+      TranslatedText: responce.data.TranslatedText
+  }
+  let request = translate.translateText(translateParams)
+  request.send(function(err, data){
+    if (err){
+      return {
+        TargetLanguageCode: translateParams.TargetLanguageCode,
+        TranslatedText: 'error'
+      }
+    }else{
+      return {
+        TargetLanguageCode: translateParams.TargetLanguageCode,
+        TranslatedText: data.TranslatedText
+      }
+    }
+  }
+}
+*/
