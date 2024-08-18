@@ -1,20 +1,78 @@
 import { TranslateClient, TranslateTextCommand } from '@aws-sdk/client-translate'
 import { APIGatewayProxyEvent } from 'aws-lambda'
+import { DynamoDBClient, PutItemCommand, PutItemCommandInput } from "@aws-sdk/client-dynamodb";
 
 const client = new TranslateClient()
+const TABLE_NAME = process.env.TABLE_NAME || ''
+const PRIMARY_KEY = process.env.PRIMARY_KEY || ''
+const SORT_KEY = process.env.SORT_KEY || ''
+const dynamodbclient = new DynamoDBClient({ region: 'ap-northeast-1' })
+
+interface TranslateParams {
+  TargetLanguageCode: string;
+  SourceLanguageCode: string;
+  Text: string;
+}
+
+interface ResponseBody {
+  TargetLanguageCode: string;
+  TranslatedText: string;
+}
+const translatetext = async (translateParams: TranslateParams): Promise<ResponseBody> => {
+  console.log('Translate Started: `${translateParams.SourceLanguageCode} -> ${translateParams.TargetLanguageCode}`');
+  try {
+    const request = new TranslateTextCommand(translateParams)
+    const data = await client.send(request);
+    if (data.TranslatedText === undefined) {
+      data.TranslatedText = 'Translate error';
+    }
+    console.log(translateParams.TargetLanguageCode)
+    console.log(data.TranslatedText)
+    console.log(typeof(data.TranslatedText))  
+    console.log(`Translate ended: ${translateParams.SourceLanguageCode} -> ${translateParams.TargetLanguageCode}`)
+    return {
+      TargetLanguageCode: translateParams.TargetLanguageCode,
+      TranslatedText: data.TranslatedText,
+    };
+  } catch (err) {
+    return {
+      TargetLanguageCode: translateParams.TargetLanguageCode,
+      TranslatedText: 'error',
+    };
+  }
+};
 
 export const handler = async (event: APIGatewayProxyEvent) => {
-
+  const dateTime = parseInt((Date.now() / 1000).toString())
+  console.log(dateTime)
+  console.log('unixtime:', dateTime)
   if (!event.body){
     return { statusCode: 400, body: 'invalid request, you are missing the parameter body' };
   }
   try {
-    const requestBody = JSON.parse(event.body || '{"text": "", "translateFrom": ""}') as {
+    console.log(event.body.replace(/\n|\r\n|\r/g, ''))
+    console.log(JSON.parse(event.body.replace(/\n|\r\n|\r/g, '')))
+    const requestBody:{
       text: string
       translateFrom: string
-    }
+      sessionID: string
+    } = JSON.parse(event.body.replace(/\n|\r\n|\r/g, '') || '{"text": "", "translateFrom": "", "sessionID": ""}' )
     const Text = requestBody.text
     const SourceLanguageCode = requestBody.translateFrom
+    const SessionID = requestBody.sessionID
+    const input:PutItemCommandInput = {
+      TableName: TABLE_NAME,
+      Item: {
+        'date': { 'N': dateTime.toString()},
+        'sessionId': { 'S': SessionID },
+        'OriginalText': { 'S': Text },
+        'SourceLanguageCode': { 'S': SourceLanguageCode }
+      },
+    }
+    const createitem = new PutItemCommand(input)
+    console.log(dateTime.toString())
+    let responce = await dynamodbclient.send(createitem)
+    console.log(responce)
     /**
      * Supported languages and language codes - Amazon Translate
      * https://docs.aws.amazon.com/translate/latest/dg/what-is-languages.html
@@ -69,42 +127,10 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       body: 'OK',
     }
   } catch (error) {
+    console.log(error)
     return {
       statusCode: 500,
       body: JSON.stringify({ error }),
     }
   }
 }
-interface TranslateParams {
-  TargetLanguageCode: string;
-  SourceLanguageCode: string;
-  Text: string;
-}
-
-interface ResponseBody {
-  TargetLanguageCode: string;
-  TranslatedText: string;
-}
-const translatetext = async (translateParams: TranslateParams): Promise<ResponseBody> => {
-  console.log('Translate Started: `${translateParams.SourceLanguageCode} -> ${translateParams.TargetLanguageCode}`');
-  try {
-    const request = new TranslateTextCommand(translateParams)
-    const data = await client.send(request);
-    if (data.TranslatedText === undefined) {
-      data.TranslatedText = 'Translate error';
-    }
-    console.log(translateParams.TargetLanguageCode)
-    console.log(data.TranslatedText)
-    console.log(typeof(data.TranslatedText))  
-    console.log(`Translate ended: ${translateParams.SourceLanguageCode} -> ${translateParams.TargetLanguageCode}`)
-    return {
-      TargetLanguageCode: translateParams.TargetLanguageCode,
-      TranslatedText: data.TranslatedText,
-    };
-  } catch (err) {
-    return {
-      TargetLanguageCode: translateParams.TargetLanguageCode,
-      TranslatedText: 'error',
-    };
-  }
-};
