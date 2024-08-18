@@ -84,7 +84,7 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
     const listChatRoomIntegration = new LambdaIntegration(listChatRoomFunction);
     listChatRoom.addMethod("POST", listChatRoomIntegration);
 
-    const createChatToken = nodejs.addResource("checkChatlist");
+    const createChatToken = nodejs.addResource("createChatToken");
     const createChatTokenIntegration = new LambdaIntegration(createChatTokenFunction);
     createChatToken.addMethod("POST", createChatTokenIntegration);
 
