@@ -91,7 +91,7 @@ const translatetext = async (translateParams: TranslateParams): Promise<Response
     const request = new TranslateTextCommand(translateParams)
     const data = await client.send(request);
     if (data.TranslatedText === undefined) {
-      throw new Error('TranslatedText is undefined');
+      data.TranslatedText = 'Translate error';
     }
     console.log(translateParams.TargetLanguageCode)
     console.log(data.TranslatedText)
