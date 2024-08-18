@@ -50,7 +50,7 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
     sendChatMessageFunction.addToRolePolicy(
       new PolicyStatement({
         effect: Effect.ALLOW,
-        actions: ["ivs:GetChannel"],
+        actions: ["ivschats:SendEvent"],
         resources: ["*"],
       }),
     );
