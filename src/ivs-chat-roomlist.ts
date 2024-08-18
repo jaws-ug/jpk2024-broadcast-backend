@@ -119,5 +119,10 @@ export const ivsChatRoomList = [
         "code": "ar",
         "arn": "arn:aws:ivschat:ap-northeast-1:590183817826:room/yui9NNk6Ftev",
     },
+    {
+        "name": "Thai",
+        "code": "th",
+        "arn": "arn:aws:ivschat:ap-northeast-1:590183817826:room/Sbu7afLJ6vjW",
+    },
 
 ]
