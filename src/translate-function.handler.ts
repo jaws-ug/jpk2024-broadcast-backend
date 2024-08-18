@@ -1,8 +1,9 @@
 import { TranslateClient, TranslateTextCommand } from '@aws-sdk/client-translate'
-import { IvschatClient, SendEventCommand } from '@aws-sdk/client-ivschat'
+import { IvschatClient, SendEventCommand, SendEventCommandInput } from '@aws-sdk/client-ivschat'
 import { APIGatewayProxyEvent } from 'aws-lambda'
 
-const client = new TranslateClient()
+const translateClient = new TranslateClient()
+const ivschatClient = new IvschatClient()
 
 export const handler = async (event: APIGatewayProxyEvent) => {
 
@@ -90,7 +91,7 @@ const translatetext = async (translateParams: TranslateParams, ivschatArn: strin
   console.log('Translate Started: `${translateParams.SourceLanguageCode} -> ${translateParams.TargetLanguageCode}`');
   try {
     const request = new TranslateTextCommand(translateParams)
-    const data = await client.send(request);
+    const data = await translateClient.send(request);
     if (data.TranslatedText === undefined) {
       data.TranslatedText = 'Translate error';
     }
@@ -98,6 +99,18 @@ const translatetext = async (translateParams: TranslateParams, ivschatArn: strin
     console.log(data.TranslatedText)
     console.log(typeof(data.TranslatedText))  
     console.log(`Translate ended: ${translateParams.SourceLanguageCode} -> ${translateParams.TargetLanguageCode}`)
+
+    const ivschatParams: SendEventCommandInput  = {
+      roomIdentifier: ivschatArn,
+      eventName: `${translateParams.TargetLanguageCode}-translation`,
+      attributes: {
+        text: data.TranslatedText,
+      },
+    }
+
+    const ivschatSendEventCommand = new SendEventCommand(ivschatParams)
+    ivschatClient.send(ivschatSendEventCommand)
+
     return {
       TargetLanguageCode: translateParams.TargetLanguageCode,
       TranslatedText: data.TranslatedText,
