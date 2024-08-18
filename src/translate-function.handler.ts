@@ -53,15 +53,18 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       "originalText": requestBody.text,
       "SourceLanguageCode": requestBody.translateFrom,
     };
+    //let translatedResponces:any = {}
+    let promises = []
     for (const item of TargetLanguageCodes){
       let TargetLanguageCode = item
       let translateParams = {
-        Text,
-        SourceLanguageCode,
-        TargetLanguageCode,
+        Text: Text,
+        SourceLanguageCode: SourceLanguageCode,
+        TargetLanguageCode: TargetLanguageCode,
       }
       // translatedText
-      const translatedText = await translate.translateText(translateParams).promise()
+      //translatedResponces[TargetLanguageCode]=translate.translateText(translateParams).promise
+      promises.push(translate.translateText(translateParams).promise)
       /**if (SourceLanguageCode !== TargetLanguageCode){
         const translatedText = await translate.translateText(translateParams)
       }else{
@@ -69,10 +72,11 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       }
       */
       // Add Translate results to Array
-      console.log(JSON.stringify({ translatedText }))
-      responceBody[TargetLanguageCode] = translatedText
-      console.log("translatedText:" + responceBody.TargetLanguageCode)
+      //responceBody[TargetLanguageCode] = translatedResponce.TranslatedText
+      //console.log("translatedText:" + responceBody.TargetLanguageCode)
     }
+    const results = await Promise.all(promises)
+    //const results = await Promise.all(translatedResponces)
     return {
       statusCode: 200,
       headers: {
@@ -80,7 +84,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST',
       },
-      body: JSON.stringify({ responceBody }),
+      body: 'OK',
     }
   } catch (error) {
     return {
