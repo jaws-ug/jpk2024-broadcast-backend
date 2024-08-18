@@ -109,7 +109,8 @@ const translatetext = async (translateParams: TranslateParams, ivschatArn: strin
     }
 
     const ivschatSendEventCommand = new SendEventCommand(ivschatParams)
-    ivschatClient.send(ivschatSendEventCommand)
+    await ivschatClient.send(ivschatSendEventCommand)
+    console.log('SendEventCommand sent')
 
     return {
       TargetLanguageCode: translateParams.TargetLanguageCode,
