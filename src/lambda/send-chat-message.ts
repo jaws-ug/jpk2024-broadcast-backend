@@ -12,7 +12,7 @@ interface IVSChatResponse {
   body: string;
 }
 
-exports.chatEventHandler = async (event: any): Promise<IVSChatResponse> => {
+export const handler = async (event: any) => {
   if (event.httpMethod !== "POST") {
     throw new Error(
       `chatEventHandler only accepts POST method, you tried: ${event.httpMethod}`,

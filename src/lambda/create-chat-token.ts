@@ -12,7 +12,7 @@ interface IVSChatResponse {
   body: string;
 }
 
-exports.createChatTokenHandler = async (event: any) => {
+export const handler = async (event: any) => {
   if (event.httpMethod !== "POST") {
     throw new Error(
       `chatAuthHandler only accepts POST method, you tried: ${event.httpMethod}`,
