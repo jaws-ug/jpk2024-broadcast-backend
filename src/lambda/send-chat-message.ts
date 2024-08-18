@@ -1,22 +1,15 @@
-const IVSChat = new AWS.Ivschat();
+import {
+  IvschatClient,
+  SendEventCommand,
+  SendEventRequest,
+} from "@aws-sdk/client-ivschat";
 
 /**
  * A function that sends an event to a specified IVS chat room.
  */
 interface IVSChatResponse {
   statusCode: number;
-  headers: {
-    "Access-Control-Allow-Headers": string;
-    "Access-Control-Allow-Origin": string;
-    "Access-Control-Allow-Methods": string;
-  };
   body: string;
-}
-
-interface IVSChatParams {
-  roomIdentifier: string;
-  eventName: string;
-  attributes: any;
 }
 
 exports.chatEventHandler = async (event: any): Promise<IVSChatResponse> => {
@@ -34,37 +27,26 @@ exports.chatEventHandler = async (event: any): Promise<IVSChatResponse> => {
 
   // Construct parameters.
   // Documentation is available at https://docs.aws.amazon.com/ivs/latest/ChatAPIReference/Welcome.html
-  const params: IVSChatParams = {
+  const params: SendEventRequest = {
     roomIdentifier: `${arn}`,
     eventName,
     attributes: { ...eventAttributes },
   };
 
   try {
-    await IVSChat.sendEvent(params).promise();
+    const client = new IvschatClient();
+    const command = new SendEventCommand(params);
+    const data = await client.send(command);
     console.info("chatEventHandler > IVSChat.sendEvent > Success");
     const response: IVSChatResponse = {
       statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST",
-      },
-      body: JSON.stringify({
-        arn: `${arn}`,
-        status: "success",
-      }),
+      body: JSON.stringify(data),
     };
     return response;
   } catch (err) {
     console.error("ERROR: chatEventHandler > IVSChat.sendEvent:", err);
     const response: IVSChatResponse = {
       statusCode: 500,
-      headers: {
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST",
-      },
       body: (err as Error).stack ?? "",
     };
     return response;

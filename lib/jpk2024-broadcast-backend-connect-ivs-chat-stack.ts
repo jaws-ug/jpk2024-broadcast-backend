@@ -8,24 +8,6 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // IVS Chat ルームのリスト一覧を取得するための Lambda 関数を作成
-    const listChatRoomFunction = new NodejsFunction(
-      this,
-      "listChatRoomFunction",
-      {
-        functionName: "listChatRoomFunction",
-        entry: "src/lambda/list-chat-room.ts",
-      },
-    );
-
-    listChatRoomFunction.addToRolePolicy(
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["ivschat:ListRoom", "ivschat:GetRoom"],
-        resources: ["*"],
-      }),
-    );
-
     // チャットルームのトークンを生成するための Lambda 関数を作成
     // TODO:疎通成功したらivs-chat-roomlist.tsを読み込むように変更する
 
@@ -79,10 +61,6 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
       restApiName: "create-chat-token-apigateway",
     });
     const nodejs = ivsChatApi.root.addResource("nodejs");
-
-    const listChatRoom = nodejs.addResource("listChatRoom");
-    const listChatRoomIntegration = new LambdaIntegration(listChatRoomFunction);
-    listChatRoom.addMethod("POST", listChatRoomIntegration);
 
     const createChatToken = nodejs.addResource("createChatToken");
     const createChatTokenIntegration = new LambdaIntegration(createChatTokenFunction);
