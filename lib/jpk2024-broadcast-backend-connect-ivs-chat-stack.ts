@@ -79,6 +79,7 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
     const ivsChatApi = new LambdaRestApi(this, "createChatTokenIntegration", {
       handler: createChatTokenFunction,
       restApiName: "create-chat-token-apigateway",
+      proxy: false,
     });
 
     const createChat = ivsChatApi.root.addResource("checkChatlist");
