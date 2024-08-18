@@ -8,9 +8,12 @@ export class Jpk2024BroadcastBackendDbStack extends Stack {
     super(scope, id, props);
 
     const translateResultTable = new TableV2(this, 'translateResultTable', {
+      /**
+       * 2024/8/17 Change date type to String.
+       */
       partitionKey: {
         name: 'date',
-        type: AttributeType.STRING
+        type: AttributeType.NUMBER
       },
       sortKey: {
         name: 'sessionId',
