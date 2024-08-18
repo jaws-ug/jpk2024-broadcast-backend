@@ -1,12 +1,15 @@
 import { TranslateClient, TranslateTextCommand } from '@aws-sdk/client-translate'
 import { APIGatewayProxyEvent } from 'aws-lambda'
-import { DynamoDBClient, PutItemCommand, PutItemCommandInput } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, PutCommandInput } from '@aws-sdk/lib-dynamodb';
 
 const client = new TranslateClient()
 const TABLE_NAME = process.env.TABLE_NAME || ''
 const PRIMARY_KEY = process.env.PRIMARY_KEY || ''
 const SORT_KEY = process.env.SORT_KEY || ''
 const dynamodbclient = new DynamoDBClient({ region: 'ap-northeast-1' })
+
+const docClient = DynamoDBDocumentClient.from(dynamodbclient);
 
 interface TranslateParams {
   TargetLanguageCode: string;
@@ -55,23 +58,23 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     const requestBody:{
       text: string
       translateFrom: string
-      sessionID: string
+      sessionId: string
     } = JSON.parse(event.body.replace(/\n|\r\n|\r/g, '') || '{"text": "", "translateFrom": "", "sessionID": ""}' )
     const Text = requestBody.text
     const SourceLanguageCode = requestBody.translateFrom
-    const SessionID = requestBody.sessionID
-    const input:PutItemCommandInput = {
+    const SessionID = requestBody.sessionId
+    const input:PutCommandInput = {
       TableName: TABLE_NAME,
       Item: {
-        'date': { 'N': dateTime.toString()},
-        'sessionId': { 'S': SessionID },
-        'OriginalText': { 'S': Text },
-        'SourceLanguageCode': { 'S': SourceLanguageCode }
+        'date': dateTime.toString(),
+        'sessionId': requestBody.sessionId,
+        'OriginalText': Text ,
+        'SourceLanguageCode': SourceLanguageCode,
       },
     }
-    const createitem = new PutItemCommand(input)
+    const createitem = new PutCommand(input)
     console.log(dateTime.toString())
-    let responce = await dynamodbclient.send(createitem)
+    let responce = await docClient.send(createitem)
     console.log(responce)
     /**
      * Supported languages and language codes - Amazon Translate
