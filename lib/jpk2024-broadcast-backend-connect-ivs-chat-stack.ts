@@ -14,7 +14,7 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
       "listChatRoomFunction",
       {
         functionName: "listChatRoomFunction",
-        entry: "src/lambda/list-chat-room.js",
+        entry: "src/lambda/list-chat-room.ts",
       },
     );
 
@@ -34,7 +34,7 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
       "createChatTokenFunction",
       {
         functionName: "createChatTokenFunction",
-        entry: "src/lambda/create-chat-token.js",
+        entry: "src/lambda/create-chat-token.ts",
         environment: {
           name: "amazon-ivs-jaws-pankration-chat-channel",
           arn: "arn:aws:ivschat:ap-northeast-1:590183817826:room/Ip9QgLDctGBK",
@@ -57,7 +57,7 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
       "sendChatMessageFunction",
       {
         functionName: "sendChatMessageFunction",
-        entry: "src/lambda/send-chat-message.js",
+        entry: "src/lambda/send-chat-message.ts",
         environment: {
           name: "amazon-ivs-jaws-pankration-chat-channel",
           arn: "arn:aws:ivschat:ap-northeast-1:590183817826:room/Ip9QgLDctGBK",

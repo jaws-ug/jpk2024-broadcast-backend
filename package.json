@@ -9,7 +9,7 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "temp-fix": "prettier --write lib/jpk2024-broadcast-backend-connect-ivs-chat-stack.ts"
+    "temp-fix": "prettier --write src/lambda/*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
