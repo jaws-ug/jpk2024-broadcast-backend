@@ -1,9 +1,8 @@
 import { Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { LambdaRestApi, LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
+import { RestApi, LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
-import { Runtime } from "aws-cdk-lib/aws-lambda";
 
 export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -53,7 +52,7 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
 
     // IVS Chatを送信するための Lambda 関数を作成
     // TODO:疎通成功したらivs-chat-roomlist.tsを読み込むように変更する
-    const sendChatMessage = new NodejsFunction(
+    const sendChatMessageFunction = new NodejsFunction(
       this,
       "sendChatMessageFunction",
       {
@@ -66,7 +65,7 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
       },
     );
 
-    createChatTokenFunction.addToRolePolicy(
+    sendChatMessageFunction.addToRolePolicy(
       new PolicyStatement({
         effect: Effect.ALLOW,
         actions: ["ivs:GetChannel"],
@@ -76,18 +75,21 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
 
     // Lambda 関数にクライアントがアクセスするための API Gateway を作成
 
-    const ivsChatApi = new LambdaRestApi(this, "createChatTokenIntegration", {
-      handler: createChatTokenFunction,
+    const ivsChatApi = new RestApi(this, "createChatTokenIntegration", {
       restApiName: "create-chat-token-apigateway",
-      proxy: false,
     });
+    const nodejs = ivsChatApi.root.addResource("nodejs");
 
-    const createChat = ivsChatApi.root.addResource("checkChatlist");
+    const listChatRoom = nodejs.addResource("listChatRoom");
+    const listChatRoomIntegration = new LambdaIntegration(listChatRoomFunction);
+    listChatRoom.addMethod("GET", listChatRoomIntegration);
+
+    const createChat = nodejs.addResource("checkChatlist");
     const ivsChatIntegration = new LambdaIntegration(createChatTokenFunction);
     createChat.addMethod("POST", ivsChatIntegration);
 
-    const sendChat = ivsChatApi.root.addResource("sendChat");
-    const sendChatIntegration = new LambdaIntegration(sendChatMessage);
-    sendChat.addMethod("POST", sendChatIntegration);
+    const sendChatMessage = nodejs.addResource("sendChatMessage");
+    const sendChatMessageIntegration = new LambdaIntegration(sendChatMessageFunction);
+    sendChatMessage.addMethod("POST", sendChatMessageIntegration);
   }
 }
