@@ -5,7 +5,7 @@ export const ivsChatRoomList = [
         "arn": "arn:aws:ivschat:ap-northeast-1:590183817826:room/j0Bpz9gSqfZQ"
     },
     {
-        "name": "ChineseTraitional",
+        "name": "ChineseTraditional",
         "code": "zh-TW",
         "arn": "arn:aws:ivschat:ap-northeast-1:590183817826:room/6TWyXlBIc3Mi",
     },
