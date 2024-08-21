@@ -1,6 +1,6 @@
 import { Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { RestApi, LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
+import { RestApi, LambdaIntegration, Cors } from "aws-cdk-lib/aws-apigateway";
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 
@@ -61,13 +61,27 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
       restApiName: "create-chat-token-apigateway",
     });
 
-    const createChatToken = ivsChatApi.root.addResource("createChatToken");
+    const createChatToken = ivsChatApi.root.addResource("createChatToken", {
+      defaultCorsPreflightOptions: {
+        allowOrigins: Cors.ALL_ORIGINS,
+        allowMethods: Cors.ALL_METHODS,
+        allowHeaders: Cors.DEFAULT_HEADERS,
+        statusCode: 200,
+      },
+    });
     const createChatTokenIntegration = new LambdaIntegration(
       createChatTokenFunction,
     );
     createChatToken.addMethod("POST", createChatTokenIntegration);
 
-    const sendChatMessage = ivsChatApi.root.addResource("sendChatMessage");
+    const sendChatMessage = ivsChatApi.root.addResource("sendChatMessage", {
+      defaultCorsPreflightOptions: {
+        allowOrigins: Cors.ALL_ORIGINS,
+        allowMethods: Cors.ALL_METHODS,
+        allowHeaders: Cors.DEFAULT_HEADERS,
+        statusCode: 200,
+      },
+    });
     const sendChatMessageIntegration = new LambdaIntegration(
       sendChatMessageFunction,
     );
