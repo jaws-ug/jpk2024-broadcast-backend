@@ -4,19 +4,24 @@ import {
   CreateChatTokenRequest,
 } from "@aws-sdk/client-ivschat";
 
-/**
- * A function that generates an IVS chat authentication token based on the request parameters.
- */
-interface IVSChatResponse {
-  statusCode: number;
-  body: string;
-}
-
 export const handler = async (event: any) => {
+  if (!event.body) {
+    return {
+      statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: `invalid request, you are missing the parameter body`,
+    };
+  }
   if (event.httpMethod !== "POST") {
-    throw new Error(
-      `chatAuthHandler only accepts POST method, you tried: ${event.httpMethod}`,
-    );
+    return {
+      statusCode: 400,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: `chatEventHandler only accepts POST method, you tried: ${event.httpMethod}`,
+    };
   }
 
   console.info("chatAuthHandler received:", event);
@@ -30,13 +35,13 @@ export const handler = async (event: any) => {
   const durationInMinutes = body.durationInMinutes || 55; // default the expiration to 55 mintues
 
   if (!roomId || !userId) {
-    const response: IVSChatResponse = {
+    return {
       statusCode: 400,
-      body: JSON.stringify({
-        error: "Missing parameters: `arn or roomIdentifier`, `userId`",
-      }),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: "Missing parameters: `arn or roomIdentifier`, `userId`",
     };
-    return response;
   }
 
   // Construct parameters.
@@ -54,21 +59,21 @@ export const handler = async (event: any) => {
     const command = new CreateChatTokenCommand(params);
     const data = await client.send(command);
     console.info("Got data:", data);
-    const response: IVSChatResponse = {
+    return {
       statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
       body: JSON.stringify(data),
     };
-
-    console.info(`statusCode: ${response.statusCode} body: ${response.body}`);
-    return response;
   } catch (err) {
     console.error("ERROR: chatAuthHandler > IVSChat.createChatToken:", err);
-    const response: IVSChatResponse = {
+    return {
       statusCode: 500,
-      body: (err as Error).stack ?? "",
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: err,
     };
-
-    console.info(`statusCode: ${response.statusCode} body: ${response.body}`);
-    return response;
   }
 };

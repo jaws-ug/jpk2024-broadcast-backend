@@ -62,7 +62,9 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
     });
 
     const createChatToken = ivsChatApi.root.addResource("createChatToken");
-    const createChatTokenIntegration = new LambdaIntegration(createChatTokenFunction);
+    const createChatTokenIntegration = new LambdaIntegration(
+      createChatTokenFunction,
+    );
     createChatToken.addMethod("POST", createChatTokenIntegration);
 
     const sendChatMessage = ivsChatApi.root.addResource("sendChatMessage");
