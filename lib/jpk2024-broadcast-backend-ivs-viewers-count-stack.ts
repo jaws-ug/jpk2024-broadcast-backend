@@ -34,7 +34,7 @@ export class Jpk2024BroadcastBackendIvsViewersCountStack extends Stack {
     // ④Lambda 関数に、 IVS へのアクセス権限を付与
     ivsViewersCountFunction.addToRolePolicy(new PolicyStatement({
       resources: [
-        'arn:aws:ivs:us-east-1:*:channel/*'
+        'arn:aws:ivs:ap-northeast-1:*:channel/*'
       ],
       actions: [
         'ivs:ListChannels',

@@ -5,8 +5,8 @@ import { RestApi, Model, JsonSchemaType, Cors } from 'aws-cdk-lib/aws-apigateway
 import { LambdaIntegration } from 'aws-cdk-lib/aws-apigateway'
 import { Runtime } from 'aws-cdk-lib/aws-lambda'
 import { Construct } from 'constructs'
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam'
 import { SortKeyStep } from 'aws-cdk-lib/aws-appsync';
+import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam'
 
 
 export class Jpk2024BroadcastBackendTranslateFunctionStack extends Stack {
@@ -31,8 +31,17 @@ export class Jpk2024BroadcastBackendTranslateFunctionStack extends Stack {
 
     translateFunction.addToRolePolicy(
       new PolicyStatement({
+        effect: Effect.ALLOW,
         resources: ['*'],
         actions: ['translate:TranslateText'],
+      })
+    )
+
+    translateFunction.addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["ivschat:SendEvent"],
+        resources: ["*"],
       })
     )
     // add readWrite permission to the translateResultTable
