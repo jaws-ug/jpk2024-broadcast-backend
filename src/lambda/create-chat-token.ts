@@ -9,7 +9,9 @@ export const handler = async (event: any) => {
     return {
       statusCode: 400,
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
       },
       body: `invalid request, you are missing the parameter body`,
     };
@@ -18,7 +20,9 @@ export const handler = async (event: any) => {
     return {
       statusCode: 400,
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
       },
       body: `chatEventHandler only accepts POST method, you tried: ${event.httpMethod}`,
     };
@@ -32,13 +36,15 @@ export const handler = async (event: any) => {
   const roomId = arn || roomIdentifier;
   const additionalAttributes = body.attributes || {};
   const capabilities = body.capabilities || []; // The permission to view messages is implicit
-  const durationInMinutes = body.durationInMinutes || 55; // default the expiration to 55 mintues
+  const durationInMinutes = 180;
 
   if (!roomId || !userId) {
     return {
       statusCode: 400,
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
       },
       body: "Missing parameters: `arn or roomIdentifier`, `userId`",
     };
@@ -62,7 +68,9 @@ export const handler = async (event: any) => {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
       },
       body: JSON.stringify(data),
     };
@@ -71,7 +79,9 @@ export const handler = async (event: any) => {
     return {
       statusCode: 500,
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
       },
       body: err,
     };
