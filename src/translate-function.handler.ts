@@ -12,6 +12,10 @@ const SORT_KEY = process.env.SORT_KEY || ''
 const dynamodbclient = new DynamoDBClient({ region: 'ap-northeast-1' })
 
 const docClient = DynamoDBDocumentClient.from(dynamodbclient);
+interface PutItem {
+  [key: string]: string;
+}
+let putitem: PutItem = {}
 
 export const handler = async (event: APIGatewayProxyEvent) => {
   const dateTime = parseInt((Date.now() / 1000).toString())
@@ -31,14 +35,15 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     const Text = requestBody.text
     const SourceLanguageCode = requestBody.translateFrom
     const SessionID = requestBody.sessionId
+    putitem = {
+      'date': dateTime.toString(),
+      'sessionId': requestBody.sessionId,
+      'OriginalText': Text ,
+      'SourceLanguageCode': SourceLanguageCode,
+    }
     const input:PutCommandInput = {
       TableName: TABLE_NAME,
-      Item: {
-        'date': dateTime.toString(),
-        'sessionId': requestBody.sessionId,
-        'OriginalText': Text ,
-        'SourceLanguageCode': SourceLanguageCode,
-      },
+      Item: putitem,
     }
     const createitem = new PutCommand(input)
     console.log(dateTime.toString())
@@ -88,6 +93,14 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     const results = await Promise.all(promises).then(function(value){
       console.log(value)
     });
+    const update_input:PutCommandInput = {
+      TableName: TABLE_NAME,
+      Item: putitem,
+    }
+    const updateitem = new PutCommand(update_input)
+    console.log(dateTime.toString())
+    let update_responce = await docClient.send(createitem)
+    console.log(update_responce)
     return {
       statusCode: 200,
       headers: {
@@ -127,7 +140,7 @@ const translatetext = async (translateParams: TranslateParams, ivschatArn: strin
     console.log(data.TranslatedText)
     console.log(typeof(data.TranslatedText))  
     console.log(`Translate ended: ${translateParams.SourceLanguageCode} -> ${translateParams.TargetLanguageCode}`)
-
+    putitem[translateParams.TargetLanguageCode] = data.TranslatedText
     const ivschatParams: SendEventCommandInput  = {
       roomIdentifier: ivschatArn,
       eventName: `${translateParams.TargetLanguageCode}-translation`,
