@@ -1,22 +1,54 @@
 import { TranslateClient, TranslateTextCommand } from '@aws-sdk/client-translate'
 import { IvschatClient, SendEventCommand, SendEventCommandInput } from '@aws-sdk/client-ivschat'
 import { APIGatewayProxyEvent } from 'aws-lambda'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, PutCommandInput } from '@aws-sdk/lib-dynamodb';
 
 const translateClient = new TranslateClient()
 const ivschatClient = new IvschatClient()
+const TABLE_NAME = process.env.TABLE_NAME || ''
+const PRIMARY_KEY = process.env.PRIMARY_KEY || ''
+const SORT_KEY = process.env.SORT_KEY || ''
+const dynamodbclient = new DynamoDBClient({ region: 'ap-northeast-1' })
+
+const docClient = DynamoDBDocumentClient.from(dynamodbclient);
+interface PutItem {
+  [key: string]: string;
+}
+let putitem: PutItem = {}
 
 export const handler = async (event: APIGatewayProxyEvent) => {
-
+  const dateTime = parseInt((Date.now() / 1000).toString())
+  console.log(dateTime)
+  console.log('unixtime:', dateTime)
   if (!event.body){
     return { statusCode: 400, body: 'invalid request, you are missing the parameter body' };
   }
   try {
-    const requestBody = JSON.parse(event.body || '{"text": "", "translateFrom": ""}') as {
+    console.log(event.body.replace(/\n|\r\n|\r/g, ''))
+    console.log(JSON.parse(event.body.replace(/\n|\r\n|\r/g, '')))
+    const requestBody:{
       text: string
       translateFrom: string
-    }
+      sessionId: string
+    } = JSON.parse(event.body.replace(/\n|\r\n|\r/g, '') || '{"text": "", "translateFrom": "", "sessionID": ""}' )
     const Text = requestBody.text
     const SourceLanguageCode = requestBody.translateFrom
+    const SessionID = requestBody.sessionId
+    putitem = {
+      'date': dateTime.toString(),
+      'sessionId': requestBody.sessionId,
+      'OriginalText': Text ,
+      'SourceLanguageCode': SourceLanguageCode,
+    }
+    const input:PutCommandInput = {
+      TableName: TABLE_NAME,
+      Item: putitem,
+    }
+    const createitem = new PutCommand(input)
+    console.log(dateTime.toString())
+    let responce = await docClient.send(createitem)
+    console.log(responce)
     /**
      * Supported languages and language codes - Amazon Translate
      * https://docs.aws.amazon.com/translate/latest/dg/what-is-languages.html
@@ -61,6 +93,14 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     const results = await Promise.all(promises).then(function(value){
       console.log(value)
     });
+    const update_input:PutCommandInput = {
+      TableName: TABLE_NAME,
+      Item: putitem,
+    }
+    const updateitem = new PutCommand(update_input)
+    console.log(dateTime.toString())
+    let update_responce = await docClient.send(createitem)
+    console.log(update_responce)
     return {
       statusCode: 200,
       headers: {
@@ -71,6 +111,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       body: 'OK',
     }
   } catch (error) {
+    console.log(error)
     return {
       statusCode: 500,
       body: JSON.stringify({ error }),
@@ -99,7 +140,7 @@ const translatetext = async (translateParams: TranslateParams, ivschatArn: strin
     console.log(data.TranslatedText)
     console.log(typeof(data.TranslatedText))  
     console.log(`Translate ended: ${translateParams.SourceLanguageCode} -> ${translateParams.TargetLanguageCode}`)
-
+    putitem[translateParams.TargetLanguageCode] = data.TranslatedText
     const ivschatParams: SendEventCommandInput  = {
       roomIdentifier: ivschatArn,
       eventName: `${translateParams.TargetLanguageCode}-translation`,

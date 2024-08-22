@@ -5,6 +5,7 @@ import { RestApi, Model, JsonSchemaType, Cors } from 'aws-cdk-lib/aws-apigateway
 import { LambdaIntegration } from 'aws-cdk-lib/aws-apigateway'
 import { Runtime } from 'aws-cdk-lib/aws-lambda'
 import { Construct } from 'constructs'
+import { SortKeyStep } from 'aws-cdk-lib/aws-appsync';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam'
 
 
@@ -13,7 +14,7 @@ export class Jpk2024BroadcastBackendTranslateFunctionStack extends Stack {
     super(scope, id, props);
 
     const translateResultTableArn = Fn.importValue('translateResultTableArn');
-    const translateResultTable: ITableV2 = TableV2.fromTableArn(this, 'translateResultTable', translateResultTableArn);
+    const translateResultTable: ITableV2 = TableV2.fromTableArn(this, 'translateResult', translateResultTableArn);
 
     const translateFunction = new NodejsFunction(this, 'translate-function', {
       runtime: Runtime.NODEJS_18_X,
@@ -21,6 +22,11 @@ export class Jpk2024BroadcastBackendTranslateFunctionStack extends Stack {
       entry: 'src/translate-function.handler.ts',
       timeout: Duration.seconds(60),
       logRetention: 30,
+      environment: {
+        TABLE_NAME: translateResultTable.tableName,
+        PRIMARY_KEY: 'date',
+        SORT_KEY: 'sessionId',
+      },
     })
 
     translateFunction.addToRolePolicy(
@@ -67,8 +73,11 @@ export class Jpk2024BroadcastBackendTranslateFunctionStack extends Stack {
           translateFrom: {
             type: JsonSchemaType.STRING,
           },
+          sessionId: {
+            type: JsonSchemaType.STRING,
+          }
         },
-        required: ['text', 'translateFrom'],
+        required: ['text', 'translateFrom', 'sessionId'],
       },
     })
 
