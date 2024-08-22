@@ -9,18 +9,12 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
     super(scope, id, props);
 
     // チャットルームのトークンを生成するための Lambda 関数を作成
-    // TODO:疎通成功したらivs-chat-roomlist.tsを読み込むように変更する
-
     const createChatTokenFunction = new NodejsFunction(
       this,
       "createChatTokenFunction",
       {
         functionName: "createChatTokenFunction",
         entry: "src/lambda/create-chat-token.ts",
-        environment: {
-          name: "amazon-ivs-jaws-pankration-chat-channel",
-          arn: "arn:aws:ivschat:ap-northeast-1:590183817826:room/Ip9QgLDctGBK",
-        },
       },
     );
 
@@ -33,17 +27,12 @@ export class Jpk2024BroadcastBackendConnectIvsChatStack extends Stack {
     );
 
     // IVS Chatを送信するための Lambda 関数を作成
-    // TODO:疎通成功したらivs-chat-roomlist.tsを読み込むように変更する
     const sendChatMessageFunction = new NodejsFunction(
       this,
       "sendChatMessageFunction",
       {
         functionName: "sendChatMessageFunction",
         entry: "src/lambda/send-chat-message.ts",
-        environment: {
-          name: "amazon-ivs-jaws-pankration-chat-channel",
-          arn: "arn:aws:ivschat:ap-northeast-1:590183817826:room/Ip9QgLDctGBK",
-        },
       },
     );
 
