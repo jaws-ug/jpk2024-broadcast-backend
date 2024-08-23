@@ -41,14 +41,17 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       'OriginalText': Text ,
       'SourceLanguageCode': SourceLanguageCode,
     }
-    const input:PutCommandInput = {
-      TableName: TABLE_NAME,
-      Item: putitem,
-    }
-    const createitem = new PutCommand(input)
-    console.log(dateTime.toString())
-    let responce = await docClient.send(createitem)
-    console.log(responce)
+    /**
+     * const input:PutCommandInput = {
+     * TableName: TABLE_NAME,
+     * Item: putitem,
+     * 
+     * commentout because of performance issue
+     * const createitem = new PutCommand(input)
+     * console.log(dateTime.toString())
+     * let responce = await docClient.send(createitem)
+     * console.log(responce)
+     */
     /**
      * Supported languages and language codes - Amazon Translate
      * https://docs.aws.amazon.com/translate/latest/dg/what-is-languages.html
@@ -99,7 +102,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
     }
     const updateitem = new PutCommand(update_input)
     console.log(dateTime.toString())
-    let update_responce = await docClient.send(createitem)
+    let update_responce = await docClient.send(updateitem)
     console.log(update_responce)
     return {
       statusCode: 200,
