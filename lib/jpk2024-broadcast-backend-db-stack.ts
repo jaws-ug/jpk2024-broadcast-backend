@@ -19,7 +19,7 @@ export class Jpk2024BroadcastBackendDbStack extends Stack {
         name: 'sessionId',
         type: AttributeType.STRING
       },
-      tableName: 'translateResult',
+      tableName: 'translateResults',
       removalPolicy: RemovalPolicy.RETAIN
     })
 
