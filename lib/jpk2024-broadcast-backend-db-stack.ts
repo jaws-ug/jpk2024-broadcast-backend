@@ -11,12 +11,12 @@ export class Jpk2024BroadcastBackendDbStack extends Stack {
       /**
        * 2024/8/17 Change date type to String.
        */
-      sortKey: {
-        name: 'date',
-        type: AttributeType.NUMBER
-      },
       partitionKey: {
         name: 'sessionId',
+        type: AttributeType.STRING
+      },
+      sortKey: {
+        name: 'date',
         type: AttributeType.STRING
       },
       tableName: 'translateResults',
