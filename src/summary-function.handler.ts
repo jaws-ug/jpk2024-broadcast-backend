@@ -3,13 +3,9 @@ import { APIGatewayProxyEvent } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommandInput, PutCommand, QueryCommand, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
 
-const TABLE_NAME = process.env.TABLE_NAME || ''
-const PRIMARY_KEY = process.env.PRIMARY_KEY || ''
-const SORT_KEY = process.env.SORT_KEY || ''
 const RESULT_TABLE_NAME = process.env.RESULT_TABLE_NAME || ''
 const SEARCHWORD = process.env.SEARCHWORD || ''
 const SUMMARY_TABLE_NAME = process.env.SUMMARY_TABLE_NAME || ''
-const SUMMARY_TABLE_PRIMARY_KEY = process.env.SUMMARY_TABLE_PRIMARY_KEY || ''
 const dynamodbclient = new DynamoDBClient({ region: 'ap-northeast-1' })
 const docClient = DynamoDBDocumentClient.from(dynamodbclient);
 // Add Bedrock Agent
@@ -43,11 +39,22 @@ const langcode: {code: string, language: string}[] = [
   { code: 'th', language: 'Thai' }, // Thai
 ]
 let language = ''
-let data, completions
+let data
 let summarytext = ''
 
-export const handler = async (event:any) => {
+export const handler = async (event: APIGatewayProxyEvent) => {
+  if (!event.body){
+    return { statusCode: 400, body: 'invalid request, you are missing the parameter body' };
+  }
   try {
+    console.log(event.body.replace(/\n|\r\n|\r/g, ''))
+    console.log(JSON.parse(event.body.replace(/\n|\r\n|\r/g, '')))
+    const requestBody:{
+      sessionId: string
+    } = JSON.parse(event.body.replace(/\n|\r\n|\r/g, '') || '{"sessionID": ""}' )
+    let SEARCHWORD = requestBody.sessionId
+    console.log(`SEARCHWORD: ${SEARCHWORD}`)
+    
     let queryParam:QueryCommandInput = {
       TableName: RESULT_TABLE_NAME,
       ExpressionAttributeValues: {

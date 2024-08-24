@@ -1,6 +1,8 @@
 import { Stack, StackProps, Duration, Fn } from 'aws-cdk-lib'
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs'
 import { ITableV2, TableV2 } from 'aws-cdk-lib/aws-dynamodb';
+import { RestApi, Model, JsonSchemaType, Cors } from 'aws-cdk-lib/aws-apigateway'
+import { LambdaIntegration } from 'aws-cdk-lib/aws-apigateway'
 import { Runtime } from 'aws-cdk-lib/aws-lambda'
 import { Construct } from 'constructs'
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam'
@@ -40,5 +42,37 @@ export class Jpk2024BroadcastBackendSummaryFunctionStack extends Stack {
         resources: ["*"],
       })
     )
+
+    const restApi = new RestApi(this, 'summary-function-rest-api', {
+      restApiName: 'RestApiForSummaryFunction',
+      deployOptions: {
+        stageName: 'v1',
+      },
+    })
+
+    const restApiTranslateResource = restApi.root.addResource('summary', {
+      defaultCorsPreflightOptions: {
+        allowOrigins: Cors.ALL_ORIGINS,
+        allowMethods: Cors.ALL_METHODS,
+        allowHeaders: Cors.DEFAULT_HEADERS,
+        statusCode: 200,
+      },
+    })
+
+    const summaryModel: Model = restApi.addModel('summaryModel', {
+      schema: {
+        type: JsonSchemaType.OBJECT,
+        properties: {
+          sessionId: {
+            type: JsonSchemaType.STRING,
+          }
+        },
+        required: ['sessionId'],
+      },
+    })
+
+    restApiTranslateResource.addMethod('POST', new LambdaIntegration(summaryFunction), {
+      requestModels: { 'application/json': summaryModel },
+    })
   }
 }
