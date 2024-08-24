@@ -22,6 +22,7 @@
     "typescript": "~5.5.3"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.637.0",
     "@aws-sdk/client-dynamodb": "^3.632.0",
     "@aws-sdk/client-ivs": "^3.632.0",
     "@aws-sdk/client-ivschat": "^3.635.0",
